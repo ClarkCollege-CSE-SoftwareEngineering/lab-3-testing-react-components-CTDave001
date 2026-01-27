@@ -147,6 +147,18 @@ describe('TaskList', () => {
     });
   });
 
-  // TODO: Add your own test - test error handling when createTask fails
-  // Hint: Use mockRejectedValue and check for the error alert
+  it('shows error when adding task fails', async () => {
+    const user = userEvent.setup();
+
+    mockedTaskApi.fetchTasks.mockResolvedValue([]);
+    mockedTaskApi.createTask.mockRejectedValue(new Error('Network error'));
+
+    render(<TaskList />);
+    await screen.findByText(/no tasks yet/i);
+
+    await user.type(screen.getByLabelText(/task title/i), 'New task');
+    await user.click(screen.getByRole('button', { name: /add task/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/failed to add/i);
+  });
 });

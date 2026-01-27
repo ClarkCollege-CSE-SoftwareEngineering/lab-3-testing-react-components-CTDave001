@@ -43,15 +43,81 @@ describe('taskApi', () => {
     });
   });
 
-  // TODO: Add tests for createTask
-  // - Test successful creation (mock POST request, verify body and headers)
-  // - Test error handling
+  describe('createTask', () => {
+    it('creates task on successful response', async () => {
+      const newTask = { id: '1', title: 'New Task', completed: false };
 
-  // TODO: Add tests for deleteTask
-  // - Test successful deletion (mock DELETE request)
-  // - Test error handling
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(newTask),
+      } as Response);
 
-  // TODO: Add tests for toggleTask
-  // - Test successful toggle (mock PATCH request, verify body)
-  // - Test error handling
+      const result = await createTask({ title: 'New Task' });
+
+      expect(result).toEqual(newTask);
+      expect(global.fetch).toHaveBeenCalledWith('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'New Task' }),
+      });
+    });
+
+    it('throws error on failed response', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: false,
+      } as Response);
+
+      await expect(createTask({ title: 'Test' })).rejects.toThrow('Failed to create task');
+    });
+  });
+
+  describe('deleteTask', () => {
+    it('deletes task on successful response', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+      } as Response);
+
+      await deleteTask('123');
+
+      expect(global.fetch).toHaveBeenCalledWith('/api/tasks/123', {
+        method: 'DELETE',
+      });
+    });
+
+    it('throws error on failed response', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: false,
+      } as Response);
+
+      await expect(deleteTask('123')).rejects.toThrow('Failed to delete task');
+    });
+  });
+
+  describe('toggleTask', () => {
+    it('toggles task on successful response', async () => {
+      const updatedTask = { id: '123', title: 'Task', completed: true };
+
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(updatedTask),
+      } as Response);
+
+      const result = await toggleTask('123', true);
+
+      expect(result).toEqual(updatedTask);
+      expect(global.fetch).toHaveBeenCalledWith('/api/tasks/123', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: true }),
+      });
+    });
+
+    it('throws error on failed response', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: false,
+      } as Response);
+
+      await expect(toggleTask('123', true)).rejects.toThrow('Failed to update task');
+    });
+  });
 });

@@ -110,4 +110,27 @@ describe('AddTaskForm', () => {
       expect(input).toHaveAttribute('aria-invalid', 'true');
     });
   });
+
+  it('shows error when submitting only whitespace', async () => {
+    const user = userEvent.setup();
+    const onAdd = vi.fn();
+    render(<AddTaskForm onAdd={onAdd} />);
+
+    await user.type(screen.getByLabelText(/task title/i), '   ');
+    await user.click(screen.getByRole('button', { name: /add task/i }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/required/i);
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it('accepts task title with exactly 3 characters', async () => {
+    const user = userEvent.setup();
+    const onAdd = vi.fn();
+    render(<AddTaskForm onAdd={onAdd} />);
+
+    await user.type(screen.getByLabelText(/task title/i), 'abc');
+    await user.click(screen.getByRole('button', { name: /add task/i }));
+
+    expect(onAdd).toHaveBeenCalledWith('abc');
+  });
 });
